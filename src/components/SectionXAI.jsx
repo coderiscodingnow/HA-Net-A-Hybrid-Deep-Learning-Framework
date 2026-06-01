@@ -24,6 +24,79 @@ const limeBoundaryDataRisk = Array.from({ length: 20 }).map(() => ({
 }));
 
 const SectionXAI = () => {
+  const handleDownload = () => {
+    const reportMarkdown = `# HA-Net Compliance Audit Report — Batch #502
+===================================================
+Generated: ${new Date().toLocaleString()}
+Status: CRITICAL EXPOSURE
+Product Type: Canned Beans
+Processing Stage: Pasteurization
+Compliance Baseline: FSSAI Schedule II & CODEX STAN 121-1981
+
+SYSTEM SUMMARY
+--------------
+- Total Risk Score: 92%
+- Model Classification: CRITICAL HARM VIOLATION
+- Neural Confidence Index: 94.2%
+- Predicted Biological Hazard: Clostridium botulinum (Spore Survival Risk)
+
+SENSOR TELEMETRY AUDIT
+----------------------
+- Core Temperature: 118°C (Critical Limit: 121°C) — [VIOLATION]
+- pH Level: 4.8 (Safety Margin Limit: 4.6) — [VIOLATION]
+- Water Activity (Aw): 0.88 Aw (Safety Limit: 0.85 Aw) — [VIOLATION]
+- Exposure Duration: 3.2 minutes — [INSUFFICIENT]
+- Storage Humidity: 65% — [NOMINAL]
+
+BIOLOGICAL SPORE VIABILITY ESTIMATES
+------------------------------------
+- Spore Survival Probability: 73%
+- D-Value at 121°C: 0.21 minutes
+- F0 Lethality Value Index: Insufficient thermal exposure detected in Pasteurization Stage.
+
+EXPLAINABLE AI (XAI) ATTRIBUTION SCORES
+---------------------------------------
+SHAP GLOBAL FEATURE IMPORTANCE (Additive Attribution):
+- Core Temperature: +0.38 (Strongly Pushed Risk Higher)
+- pH Level: +0.21 (Pushed Risk Higher)
+- Water Activity: +0.17 (Pushed Risk Higher)
+- Ambient Humidity: +0.06 (Pushed Risk Higher)
+- Packaging Stage: -0.04 (Slightly Lowered Risk)
+- Exposure Duration: -0.09 (Slightly Lowered Risk)
+
+LIME LOCAL DECISION BOUNDARY MATRIX:
+- Local Region Temp: 118°C
+- Local Region Duration: 3.2 minutes
+- State: Located inside the High-Risk Decision Boundary.
+
+REGULATORY VIOLATIONS & IMPACT
+------------------------------
+- CODEX STAN 121-1981: Failure to meet biological sterilization equivalence.
+- FSSAI Schedule II (Food Products Standards Regulations 2011): Thermal processing guidelines bypassed.
+
+MANDATORY QA CORRECTIVE ACTIONS
+-------------------------------
+1. Reject and quarantine complete Batch #502 immediately.
+2. Re-sterilize or dispose of raw cargo following SOP-BIO-007 protocols.
+3. Notify the QA/QC Plant Supervisor and file an incident form.
+4. Clean and inspect Pasteurization unit telemetry sensors before next run.
+
+---------------------------------------------------
+Signed,
+HA-Net Autogen Auditing Pipeline
+FSSAI Compliant System Module
+`;
+
+    const blob = new Blob([reportMarkdown], { type: 'text/markdown;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'HA-NET_Compliance_Audit_BATCH-0502.md');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
       <header style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
@@ -33,9 +106,13 @@ const SectionXAI = () => {
           </h2>
           <p style={{ color: 'var(--text-muted)', margin: 0 }}>Why was Batch #502 flagged? — AI Decision Interpretability</p>
         </div>
-        <button className="btn" style={{ backgroundColor: 'rgba(245, 166, 35, 0.1)', color: 'var(--accent-amber)', borderColor: 'var(--accent-amber)' }}>
+        <button 
+          className="btn" 
+          style={{ backgroundColor: 'rgba(245, 166, 35, 0.1)', color: 'var(--accent-amber)', borderColor: 'var(--accent-amber)' }}
+          onClick={handleDownload}
+        >
           <Download size={18} />
-          Export PDF Compliance Report
+          Export Compliance Audit Report
         </button>
       </header>
 

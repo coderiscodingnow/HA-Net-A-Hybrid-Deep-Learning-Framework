@@ -50,6 +50,10 @@ const SectionKnowledgeGraph = () => {
     const svg = d3.select(svgRef.current)
       .attr('viewBox', [0, 0, width, height]);
 
+    // Create a container group that will be translated and scaled by zoom
+    const container = svg.append('g')
+      .attr('class', 'graph-container');
+
     const filteredNodes = mockNodes.filter(n => {
       if (activeFilter === 'biological' && n.group !== 'pathogen') return false;
       return true;
@@ -64,7 +68,7 @@ const SectionKnowledgeGraph = () => {
       .force('charge', d3.forceManyBody().strength(-400))
       .force('center', d3.forceCenter(width / 2, height / 2));
 
-    // Marker for arrows
+    // Marker for arrows (attached directly to svg, so it is not zoomed/scaled)
     svg.append('defs').append('marker')
       .attr('id', 'arrow')
       .attr('viewBox', '0 -5 10 10')
@@ -77,7 +81,8 @@ const SectionKnowledgeGraph = () => {
       .attr('fill', 'var(--text-muted)')
       .attr('d', 'M0,-5L10,0L0,5');
 
-    const link = svg.append('g')
+    // All graph elements are appended to the container group
+    const link = container.append('g')
       .attr('stroke', 'var(--text-muted)')
       .attr('stroke-opacity', 0.6)
       .selectAll('line')
@@ -86,7 +91,7 @@ const SectionKnowledgeGraph = () => {
       .attr('stroke-width', 2)
       .attr('marker-end', 'url(#arrow)');
 
-    const linkText = svg.append('g')
+    const linkText = container.append('g')
       .selectAll('text')
       .data(filteredLinks)
       .join('text')
@@ -95,7 +100,7 @@ const SectionKnowledgeGraph = () => {
       .attr('font-family', '"Space Mono", monospace')
       .text(d => d.type.replace('_', ' '));
 
-    const node = svg.append('g')
+    const node = container.append('g')
       .selectAll('g')
       .data(filteredNodes)
       .join('g')
@@ -126,7 +131,7 @@ const SectionKnowledgeGraph = () => {
       .attr('font-size', '12px')
       .attr('font-family', '"Sora", sans-serif');
 
-    // Drag behavior
+    // Drag behavior (updated to work correctly with zoom transforms if active)
     node.call(d3.drag()
       .on('start', (event) => {
         if (!event.active) simulation.alphaTarget(0.3).restart();
@@ -162,6 +167,29 @@ const SectionKnowledgeGraph = () => {
         .attr('r', d => (searchTerm && d.label.toLowerCase().includes(searchTerm.toLowerCase())) ? 16 : 12)
         .attr('stroke', d => (searchTerm && d.label.toLowerCase().includes(searchTerm.toLowerCase())) ? 'white' : 'var(--bg-primary)')
         .attr('stroke-width', d => (searchTerm && d.label.toLowerCase().includes(searchTerm.toLowerCase())) ? 3 : 2);
+    });
+
+    // Define Zoom behavior
+    const zoom = d3.zoom()
+      .scaleExtent([0.15, 5])
+      .on('zoom', (event) => {
+        container.attr('transform', event.transform);
+      });
+
+    svg.call(zoom);
+
+    // Zoom Button event bindings
+    d3.select('#zoom-in').on('click', (event) => {
+      event.preventDefault();
+      svg.transition().duration(300).call(zoom.scaleBy, 1.3);
+    });
+    d3.select('#zoom-out').on('click', (event) => {
+      event.preventDefault();
+      svg.transition().duration(300).call(zoom.scaleBy, 0.75);
+    });
+    d3.select('#zoom-reset').on('click', (event) => {
+      event.preventDefault();
+      svg.transition().duration(500).call(zoom.transform, d3.zoomIdentity);
     });
 
     return () => simulation.stop();
@@ -200,7 +228,80 @@ const SectionKnowledgeGraph = () => {
           </button>
         </div>
 
-        <div style={{ flex: 1, backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)' }}>
+        <div style={{ flex: 1, backgroundColor: 'var(--bg-secondary)', borderRadius: '8px', overflow: 'hidden', border: '1px solid var(--border)', position: 'relative' }}>
+          {/* Scientific Overlay floating zoom-controls */}
+          <div style={{
+            position: 'absolute',
+            top: '12px',
+            right: '12px',
+            display: 'flex',
+            flexDirection: 'column',
+            gap: '6px',
+            zIndex: 10
+          }}>
+            <button 
+              id="zoom-in" 
+              className="btn" 
+              style={{
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                backgroundColor: 'rgba(10, 15, 30, 0.7)',
+                borderColor: 'var(--border)',
+                color: 'var(--text-primary)',
+                borderRadius: '6px'
+              }}
+              title="Zoom In"
+            >
+              +
+            </button>
+            <button 
+              id="zoom-out" 
+              className="btn" 
+              style={{
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '18px',
+                fontWeight: 'bold',
+                backgroundColor: 'rgba(10, 15, 30, 0.7)',
+                borderColor: 'var(--border)',
+                color: 'var(--text-primary)',
+                borderRadius: '6px'
+              }}
+              title="Zoom Out"
+            >
+              −
+            </button>
+            <button 
+              id="zoom-reset" 
+              className="btn" 
+              style={{
+                width: '32px',
+                height: '32px',
+                padding: 0,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                fontSize: '14px',
+                backgroundColor: 'rgba(10, 15, 30, 0.7)',
+                borderColor: 'var(--border)',
+                color: 'var(--accent-blue)',
+                borderRadius: '6px'
+              }}
+              title="Reset View"
+            >
+              ⟲
+            </button>
+          </div>
           <svg ref={svgRef} style={{ width: '100%', height: '100%' }}></svg>
         </div>
       </div>

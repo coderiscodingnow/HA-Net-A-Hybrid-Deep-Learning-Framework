@@ -6,6 +6,7 @@ import SectionRiskAnalyzer from './components/SectionRiskAnalyzer';
 import SectionXAI from './components/SectionXAI';
 import SectionGAN from './components/SectionGAN';
 import SectionFederated from './components/SectionFederated';
+import SectionSettings from './components/SectionSettings';
 
 function App() {
   const [activeSection, setActiveSection] = useState('home');
@@ -25,7 +26,7 @@ function App() {
       case 'federated':
         return <SectionFederated />;
       case 'settings':
-        return <div style={{ padding: '2rem' }}><h2>Settings (Placeholder)</h2></div>;
+        return <SectionSettings />;
       default:
         return <SectionHome />;
     }

@@ -28,14 +28,17 @@ const mockLogs = [
 const SectionFederated = () => {
   const [logs, setLogs] = useState([]);
   const [roundProgress, setRoundProgress] = useState(0);
+  const [resetKey, setResetKey] = useState(0);
 
   useEffect(() => {
-    // Simulate log streaming
+    setLogs([]);
+    setRoundProgress(0);
     let i = 0;
     const interval = setInterval(() => {
       if (i < mockLogs.length) {
         setLogs(prev => [...prev, mockLogs[i]]);
-        setRoundProgress((i / mockLogs.length) * 100);
+        const progress = Math.min(100, Math.round(((i + 1) / mockLogs.length) * 100));
+        setRoundProgress(progress);
         i++;
       } else {
         clearInterval(interval);
@@ -43,7 +46,7 @@ const SectionFederated = () => {
     }, 1500);
 
     return () => clearInterval(interval);
-  }, []);
+  }, [resetKey]);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', height: '100%' }}>
@@ -121,7 +124,7 @@ const SectionFederated = () => {
         {/* Status Panel & Logs */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
           
-          <div className="glass-card glow-card-green">
+          <div className="glass-card glow-card-green" style={{ display: 'flex', flexDirection: 'column' }}>
             <h3 style={{ margin: '0 0 1rem 0', fontSize: '1.125rem' }}>Training Status</h3>
             
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
@@ -147,9 +150,28 @@ const SectionFederated = () => {
               <span>Round Progress</span>
               <span className="mono-text">{Math.round(roundProgress)}%</span>
             </div>
-            <div style={{ width: '100%', height: 6, backgroundColor: 'var(--border)', borderRadius: 3 }}>
+            <div style={{ width: '100%', height: 6, backgroundColor: 'var(--border)', borderRadius: 3, marginBottom: roundProgress === 100 ? '0.75rem' : 0 }}>
               <div style={{ width: `${roundProgress}%`, height: '100%', backgroundColor: 'var(--accent-blue)', borderRadius: 3, transition: 'width 0.3s ease' }}></div>
             </div>
+
+            {roundProgress === 100 && (
+              <button 
+                className="btn" 
+                onClick={() => setResetKey(prev => prev + 1)}
+                style={{
+                  marginTop: '0.5rem',
+                  width: '100%',
+                  borderColor: 'var(--accent-green)',
+                  color: 'var(--accent-green)',
+                  backgroundColor: 'rgba(0, 229, 160, 0.1)',
+                  fontWeight: 600,
+                  fontSize: '0.8rem',
+                  padding: '0.4rem'
+                }}
+              >
+                Restart Training Round
+              </button>
+            )}
           </div>
 
           <div style={{ 
@@ -173,7 +195,7 @@ const SectionFederated = () => {
               <Activity size={14} /> Aggregation Log
             </div>
             <div style={{ flex: 1, padding: '1rem', overflowY: 'auto', backgroundColor: '#000', fontFamily: '"Space Mono", monospace', fontSize: '0.75rem', lineHeight: 1.6, display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {logs.map((log, i) => (
+              {logs.filter(Boolean).map((log, i) => (
                 <div key={i} style={{ color: log.includes('INFO') ? 'var(--text-muted)' : log.includes('SYNC') || log.includes('AGG') ? 'var(--accent-blue)' : log.includes('EVAL') ? 'var(--accent-green)' : log.includes('PRIVACY') ? 'var(--accent-amber)' : 'var(--text-primary)' }}>
                   {log}
                 </div>
